@@ -1,9 +1,13 @@
-import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, Post, Put, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, Post, Put, Req, UseGuards, Query } from '@nestjs/common';
 import { ChiTietLoaiCongViecService } from './chi-tiet-loai-cong-viec.service';
 import { AuthGuard } from '@nestjs/passport';
 import { error } from 'console';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { CTLCV } from './entities/CTLCV.entities';
 
 @UseGuards(AuthGuard("jwt"))
+@ApiBearerAuth()
+@ApiTags('Chi-tiết-loại-công-việc')
 @Controller('api/chi-tiet-loai-cong-viec')
 export class ChiTietLoaiCongViecController {
   constructor(private readonly chiTietLoaiCongViecService: ChiTietLoaiCongViecService) { }
@@ -17,7 +21,7 @@ export class ChiTietLoaiCongViecController {
     return this.chiTietLoaiCongViecService.getById(Number(id))
   }
   @Post('/create')
-  createCTLCV(@Body() body, @Req() req) {
+  createCTLCV(@Body() body: CTLCV, @Req() req) {
     let tokenDecode = req.user
     let { role } = tokenDecode.data;
     if (role == "ADMIN") {
@@ -45,11 +49,11 @@ export class ChiTietLoaiCongViecController {
   }
 
   @Put('/edits/:id')
-  editsById(@Param("id") id: string, @Req() req, @Body() body) {
+  editsById(@Param("id") id: string, @Req() req, @Query("Tên chi tiết") ten_chi_tiet: string) {
     let tokenDecode = req.user
     let { role } = tokenDecode.data
     if (role == "ADMIN") {
-      return this.chiTietLoaiCongViecService.editsById(Number(id), body)
+      return this.chiTietLoaiCongViecService.editsById(Number(id), ten_chi_tiet)
     } else {
       throw new HttpException({
         status: HttpStatus.UNAUTHORIZED,
@@ -59,7 +63,7 @@ export class ChiTietLoaiCongViecController {
   };
 
   @Get('/get-pagination')
-  getPagination(@Body() body) {
-    return this.chiTietLoaiCongViecService.getPagination(body)
+  getPagination(@Query("PageIndex") pageIndex: number, @Query("PageSize") pageSize: string, @Query("NameSearch") nameSearch: string) {
+    return this.chiTietLoaiCongViecService.getPagination(pageIndex, Number(pageSize), nameSearch)
   }
 }

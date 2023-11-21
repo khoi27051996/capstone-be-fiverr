@@ -1,6 +1,7 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { error } from 'console';
+import { BinhLuan } from './entities/binhLuan.entities';
 @Injectable()
 export class BinhLuanService {
     prisma = new PrismaClient();
@@ -11,7 +12,7 @@ export class BinhLuanService {
         return dataTrue
     };
 
-    async createBl(body, id) {
+    async createBl(body: BinhLuan, id) {
         let { ma_cong_viec, noi_dung } = body;
         let data = {
             ma_cong_viec,
@@ -24,7 +25,7 @@ export class BinhLuanService {
         return await this.prisma.binh_luan.create({ data: data })
     };
 
-    async editsNoiDung(id: number, body) {
+    async editsNoiDung(id: number, body: BinhLuan) {
         let { noi_dung } = body;
         return await this.prisma.binh_luan.update({
             where: {
@@ -64,12 +65,12 @@ export class BinhLuanService {
     };
 
     async getByCongViec(id: number) {
-        let data = await this.prisma.binh_luan.findMany({
+        let data = await this.prisma.cong_viec.findMany({
             where: {
-                ma_cong_viec: id
+                id
             },
             include: {
-                nguoi_dung: true
+                binh_luan: true
             }
         })
         return data

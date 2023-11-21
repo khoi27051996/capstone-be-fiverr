@@ -1,11 +1,12 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client'
 import { error } from 'console';
+import { LoaiCongViec } from './entities/loaiCongViec.entities';
 @Injectable()
 export class LoaiCongViecService {
     prisma = new PrismaClient()
 
-    async createLoaiCv(body) {
+    async createLoaiCv(body: LoaiCongViec) {
         let { ten_loai_cong_viec } = body
         let data = await this.prisma.loai_cong_viec.findFirst({
             where: {
@@ -25,7 +26,7 @@ export class LoaiCongViecService {
         }
     };
 
-    async editLoaiCv(id: number, body) {
+    async editLoaiCv(id: number, body: LoaiCongViec) {
         let { ten_loai_cong_viec } = body;
         let data = await this.prisma.loai_cong_viec.findFirst({
             where: {
@@ -74,11 +75,17 @@ export class LoaiCongViecService {
                 id
             }
         });
-        return data
+        if (data.trang_thai == true) {
+            return data
+        } else {
+            throw new HttpException({
+                status: HttpStatus.BAD_REQUEST,
+                error: "Mã loại công việc không tồn tại !!!"
+            }, HttpStatus.BAD_REQUEST, { cause: error })
+        }
     };
 
-    async getPaginationByName(body) {
-        let { nameSearch, pageIndex, pageSize } = body;
+    async getPaginationByName(pageIndex: number, pageSize: number, nameSearch: string) {
         let skip = (pageIndex - 1) * pageSize;
         let take = pageSize;
 

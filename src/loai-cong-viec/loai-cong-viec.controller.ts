@@ -1,15 +1,19 @@
-import { Controller, Post, Body, UseGuards, Req, HttpException, HttpStatus, Put, Param, Delete, Get } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Req, HttpException, HttpStatus, Put, Param, Delete, Get, Query } from '@nestjs/common';
 import { LoaiCongViecService } from './loai-cong-viec.service';
 import { AuthGuard } from '@nestjs/passport';
 import { error } from 'console';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { LoaiCongViec } from './entities/loaiCongViec.entities';
 
 @UseGuards(AuthGuard("jwt"))
+@ApiBearerAuth()
+@ApiTags('Loại-công-việc')
 @Controller('api/loai-cong-viec')
 export class LoaiCongViecController {
   constructor(private readonly loaiCongViecService: LoaiCongViecService) { }
 
   @Post('/create')
-  createLoaiCv(@Body() body, @Req() req) {
+  createLoaiCv(@Body() body: LoaiCongViec, @Req() req) {
     let tokenDecode = req.user;
     let { role } = tokenDecode.data;
     if (role == 'ADMIN') {
@@ -22,7 +26,7 @@ export class LoaiCongViecController {
     }
   }
   @Put('/edit/:id')
-  editLoaiCv(@Param("id") id: string, @Body() body, @Req() req) {
+  editLoaiCv(@Param("id") id: string, @Body() body: LoaiCongViec, @Req() req) {
     let tokenDecode = req.user;
     let { role } = tokenDecode.data;
     if (role == "ADMIN") {
@@ -60,11 +64,11 @@ export class LoaiCongViecController {
   };
 
   @Get('/get-pagination-by-name')
-  getPaginationByName(@Body() body, @Req() req) {
+  getPaginationByName(@Query("PageIndex") pageIndex: number, @Query("PageSize") pageSize: string, @Query("NameSearch") nameSearch: string, @Req() req) {
     let tokenDecode = req.user;
     let { role } = tokenDecode.data;
     if (role == "ADMIN") {
-      return this.loaiCongViecService.getPaginationByName(body)
+      return this.loaiCongViecService.getPaginationByName(pageIndex, Number(pageSize), nameSearch)
     } else {
       throw new HttpException({
         status: HttpStatus.UNAUTHORIZED,

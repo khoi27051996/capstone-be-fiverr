@@ -1,6 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client'
 import { error } from 'console';
+import { CongViec } from './entities/congViec.entities';
 @Injectable()
 export class CongViecService {
     prisma = new PrismaClient();
@@ -12,8 +13,7 @@ export class CongViecService {
         return dataTrue
     };
 
-    async getPagination(body) {
-        let { pageIndex, pageSize, nameSearch } = body;
+    async getPagination(pageIndex: number, pageSize: number, nameSearch: string) {
         let skip = (pageIndex - 1) * pageSize;
         let take = pageSize;
         let data = await this.prisma.cong_viec.findMany({
@@ -27,7 +27,17 @@ export class CongViecService {
         });
         return data
     };
-
+    async getByNameSearch(nameSearch: string) {
+        let data = await this.prisma.cong_viec.findMany({
+            where: {
+                ten_cong_viec: {
+                    contains: nameSearch
+                }
+            }
+        });
+        let dataTrue = data.filter(v => v.trang_thai == true);
+        return dataTrue
+    };
     async getById(id: number) {
         let data = await this.prisma.cong_viec.findFirst({
             where: {
@@ -37,7 +47,7 @@ export class CongViecService {
         return data
     };
 
-    async createCongViec(body, id) {
+    async createCongViec(body: CongViec, id) {
         let { ten_cong_viec, danh_gia, gia_tien, hinh_anh, mo_ta, mo_ta_ngan, sao_cong_viec, ma_chi_tiet_loai } = body;
         let data = await this.prisma.chi_tiet_loai_cong_viec.findFirst({
             where: {
@@ -81,7 +91,7 @@ export class CongViecService {
         }
     };
 
-    async editsById(id: number, body) {
+    async editsById(id: number, body: CongViec) {
         let { ten_cong_viec, danh_gia, gia_tien, hinh_anh, mo_ta, mo_ta_ngan, sao_cong_viec, ma_chi_tiet_loai } = body;
         let data = await this.prisma.chi_tiet_loai_cong_viec.findFirst({
             where: {
@@ -171,18 +181,7 @@ export class CongViecService {
             }, HttpStatus.BAD_REQUEST, { cause: error })
         }
     };
-    async getByNameSearch(body) {
-        let { nameSearch } = body;
-        let data = await this.prisma.cong_viec.findMany({
-            where: {
-                ten_cong_viec: {
-                    contains: nameSearch
-                }
-            }
-        });
-        let dataTrue = data.filter(v => v.trang_thai == true);
-        return dataTrue
-    };
+
 
     async getChiTietLoaiCongViec(id: number) {
         let data = await this.prisma.loai_cong_viec.findFirst({

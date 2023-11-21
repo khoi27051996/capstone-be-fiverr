@@ -1,6 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient, nhom_chi_tiet_loai } from '@prisma/client'
 import { error } from 'console';
+import { NhomChiTietLoai } from './entities/nhomCTL.entities';
 @Injectable()
 export class NhomChiTietLoaiService {
     prisma = new PrismaClient();
@@ -24,7 +25,7 @@ export class NhomChiTietLoaiService {
         })
         return data
     };
-    async createNhom(body) {
+    async createNhom(body: NhomChiTietLoai) {
         let { ma_loai_cong_viec, ten_nhom, hinh_anh } = body;
         let data = await this.prisma.loai_cong_viec.findFirst({
             where: {
@@ -59,8 +60,7 @@ export class NhomChiTietLoaiService {
         }
     };
 
-    async editsNhom(body, id: number) {
-        let { ten_nhom, hinh_anh } = body
+    async editsNhom(ten_nhom, hinh_anh, id: number) {
         let checkTen = await this.prisma.nhom_chi_tiet_loai.findFirst({
             where: {
                 ten_nhom

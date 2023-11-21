@@ -1,6 +1,7 @@
 import { Body, HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { error } from 'console';
+import { ThueCongViec } from './entities/thueCv.entities';
 @Injectable()
 export class ThueCongViecService {
     prisma = new PrismaClient();
@@ -12,8 +13,8 @@ export class ThueCongViecService {
     };
 
 
-    async getPagination(body) {
-        let { pageIndex, pageSize, maCongViec } = body;
+    async getPagination(pageSize: number, pageIndex: number) {
+
         let skip = (pageIndex - 1) * pageSize;
         let take = pageSize;
 
@@ -33,14 +34,15 @@ export class ThueCongViecService {
         return data
     }
 
-    async createThueCongViec(body, id) {
+    async createThueCongViec(body: ThueCongViec, id) {
         let { ma_cong_viec } = body;
 
-        let data = await this.prisma.thue_cong_viec.findFirst({
+        let data = await this.prisma.thue_cong_viec.findMany({
             where: {
                 ma_nguoi_thue: id
             }
         });
+
         let checkData = await this.prisma.cong_viec.findFirst({
             where: {
                 id: ma_cong_viec
@@ -48,7 +50,8 @@ export class ThueCongViecService {
         })
         if (checkData) {
             if (data) {
-                if (ma_cong_viec == data.ma_cong_viec) {
+                let checkCv = data.find(v => v.ma_cong_viec == ma_cong_viec)
+                if (checkCv) {
                     throw new HttpException({
                         status: HttpStatus.BAD_REQUEST,
                         error: "Bạn đã thuê công việc này rồi !!!"
@@ -58,7 +61,8 @@ export class ThueCongViecService {
                         ma_cong_viec,
                         ma_nguoi_thue: id,
                         ngay_thue: new Date(),
-                        hoan_thanh: false
+                        hoan_thanh: false,
+                        trang_thai: true
                     }
                     await this.prisma.thue_cong_viec.create({ data: newData })
                     return "Thuê công việc thành công !!!"
@@ -83,29 +87,17 @@ export class ThueCongViecService {
 
     };
 
-    async editsById(id: number, body) {
-        let { ma_cong_viec } = body;
-        let data = await this.prisma.thue_cong_viec.findFirst({
+    async editsById(id: number) {
+
+        await this.prisma.thue_cong_viec.update({
             where: {
-                ma_cong_viec
+                id
+            },
+            data: {
+                hoan_thanh: true
             }
-        });
-        if (data) {
-            throw new HttpException({
-                status: HttpStatus.BAD_REQUEST,
-                error: "Bạn đang thuê công việc này rồi !!!"
-            }, HttpStatus.BAD_REQUEST, { cause: error })
-        } else {
-            await this.prisma.thue_cong_viec.update({
-                where: {
-                    id
-                },
-                data: {
-                    ma_cong_viec
-                }
-            });
-            return "Chỉnh sửa thành công !!!"
-        }
+        })
+        return "Chỉnh sửa thành công !!!"
     };
 
     async deleteById(id: number) {
@@ -136,14 +128,4 @@ export class ThueCongViecService {
         }
     };
 
-    async updateThue(id: number) {
-        return await this.prisma.thue_cong_viec.update({
-            where: {
-                id
-            },
-            data: {
-                hoan_thanh: true
-            }
-        });
-    }
 }

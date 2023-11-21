@@ -1,10 +1,15 @@
-import { Body, Controller, Get, HttpException, HttpStatus, Param, Post, Put, Req, UseGuards, Delete, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Body, Controller, Get, HttpException, HttpStatus, Param, Post, Put, Req, UseGuards, Delete, UseInterceptors, UploadedFile, Query } from '@nestjs/common';
 import { CongViecService } from './cong-viec.service';
 import { error } from 'console';
 import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
+import { CongViec } from './entities/congViec.entities';
+import { FileUploadImg } from 'src/nguoi-dung/entities/nguoi-dung.entities';
 @UseGuards(AuthGuard("jwt"))
+@ApiBearerAuth()
+@ApiTags('Công-việc')
 @Controller('api/cong-viec')
 export class CongViecController {
   constructor(private readonly congViecService: CongViecService) { }
@@ -14,20 +19,20 @@ export class CongViecController {
   };
 
   @Get('/get-pagination')
-  getPagination(@Body() body) {
-    return this.congViecService.getPagination(body)
+  getPagination(@Query("Page Size") pageSize: string, @Query("Page Index") pageIndex: number, @Query("Name Search") nameSearch: string) {
+    return this.congViecService.getPagination(pageIndex, Number(pageSize), nameSearch)
   }
 
   @Get('/get-by-namesearch')
-  getByNameSearch(@Body() body) {
-    return this.congViecService.getByNameSearch(body)
+  getByNameSearch(@Query("Name Search") nameSearch: string) {
+    return this.congViecService.getByNameSearch(nameSearch)
   }
   @Get('/get-by-id/:id')
   getById(@Param("id") id: string) {
     return this.congViecService.getById(Number(id))
   }
   @Post('/create')
-  createCongViec(@Body() body, @Req() req) {
+  createCongViec(@Body() body: CongViec, @Req() req) {
     let tokenDecode = req.user
     let { role, id } = tokenDecode.data;
     if (role == "ADMIN") {
@@ -42,7 +47,7 @@ export class CongViecController {
   }
 
   @Put('/edits/:id')
-  editById(@Param("id") id: string, @Body() body, @Req() req) {
+  editById(@Param("id") id: string, @Body() body: CongViec, @Req() req) {
     let tokenDecode = req.user
     let { role } = tokenDecode.data;
     if (role == "ADMIN") {
@@ -77,6 +82,10 @@ export class CongViecController {
       filename: (req, file, callback) => callback(null, new Date().getTime() + "_" + file.originalname)
     })
   }))
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    type: FileUploadImg
+  })
   @Post('/upload-file/:id')
   upImgByFile(@UploadedFile() file: Express.Multer.File, @Param("id") id: string) {
     return this.congViecService.upImgByFile(file, Number(id))

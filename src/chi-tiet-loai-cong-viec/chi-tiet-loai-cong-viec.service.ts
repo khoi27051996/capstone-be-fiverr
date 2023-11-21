@@ -1,6 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client'
 import { error } from 'console';
+import { CTLCV } from './entities/CTLCV.entities';
 
 
 @Injectable()
@@ -20,7 +21,7 @@ export class ChiTietLoaiCongViecService {
         })
         return data
     };
-    async createCTLCV(body) {
+    async createCTLCV(body: CTLCV) {
         let { ten_chi_tiet, ma_nhom_chi_tiet } = body
         let data = await this.prisma.nhom_chi_tiet_loai.findFirst({
             where: {
@@ -41,7 +42,8 @@ export class ChiTietLoaiCongViecService {
             } else {
                 let newData = {
                     ten_chi_tiet,
-                    ma_nhom_chi_tiet
+                    ma_nhom_chi_tiet,
+                    trang_thai: true
                 }
                 await this.prisma.chi_tiet_loai_cong_viec.create({ data: newData })
                 return "Tạo thành công !!!"
@@ -60,14 +62,14 @@ export class ChiTietLoaiCongViecService {
                 id
             },
             data: {
-                trang_thai: true
+                trang_thai: false
             }
         });
         return "Xóa thành công !!!"
     };
 
-    async editsById(id: number, body) {
-        let { ten_chi_tiet } = body;
+    async editsById(id: number, ten_chi_tiet: string) {
+
         let checkTen = await this.prisma.chi_tiet_loai_cong_viec.findFirst({
             where: {
                 ten_chi_tiet
@@ -91,8 +93,8 @@ export class ChiTietLoaiCongViecService {
         }
     };
 
-    async getPagination(body) {
-        let { pageIndex, pageSize, nameSearch } = body;
+    async getPagination(pageIndex: number, pageSize: number, nameSearch: string) {
+
         let skip = (pageIndex - 1) * pageSize;
         let take = pageSize;
 

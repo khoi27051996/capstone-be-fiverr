@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger'
 export class User {
     id: number
     name: string
@@ -10,4 +11,19 @@ export class User {
     skil: string
     certification: string
     trang_thai: boolean
+}
+
+export class deleteUser {
+    @ApiProperty()
+    id: number
+}
+
+export class FileUploadImg {
+    @ApiProperty({ type: 'string', format: 'binary' })
+    file: any
+}
+
+export class LinkImg {
+    @ApiProperty()
+    linkImg: string
 }

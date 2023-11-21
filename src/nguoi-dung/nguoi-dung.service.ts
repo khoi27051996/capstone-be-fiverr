@@ -2,7 +2,9 @@ import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client'
 import { error } from 'console';
 import * as bcrypt from 'bcrypt'
-import { async } from 'rxjs';
+
+import { PaginationName, SearchName, SignIn, SignUp, UpdateUser } from 'src/auth/entities/authEntities';
+import { LinkImg, deleteUser } from './entities/nguoi-dung.entities';
 @Injectable()
 export class NguoiDungService {
     prisma = new PrismaClient()
@@ -14,7 +16,7 @@ export class NguoiDungService {
         let newData = data.filter((v) => v.trang_thai == true)
         return newData
     };
-    async createUser(body) {
+    async createUser(body: SignUp) {
         let { email, pass_word, name, role } = body
         let checkEmail = await this.prisma.nguoi_dung.findFirst({
             where: {
@@ -37,7 +39,7 @@ export class NguoiDungService {
             return "Tạo thành công !!!"
         }
     };
-    async deleteUser(body) {
+    async deleteUser(body: deleteUser) {
         let { id } = body
         await this.prisma.nguoi_dung.update({
             where: {
@@ -49,8 +51,7 @@ export class NguoiDungService {
         })
         return "Xóa thành công !!!"
     };
-    async getPagination(body) {
-        let { nameSearch, pageIndex, pageSize } = body;
+    async getPagination(pageIndex: number, pageSize: number, nameSearch: string) {
         let skip = (pageIndex - 1) * pageSize;
         let take = pageSize;
         const data = await this.prisma.nguoi_dung.findMany({
@@ -65,8 +66,8 @@ export class NguoiDungService {
 
         return data
     };
-    async searchName(body) {
-        let { nameSearch } = body
+    async searchName(nameSearch) {
+        // let { nameSearch } = body
         let data = await this.prisma.nguoi_dung.findMany({
             where: {
                 name: {
@@ -103,7 +104,7 @@ export class NguoiDungService {
         }
     };
 
-    async updateUser(body, id: number) {
+    async updateUser(body: UpdateUser, id: number) {
 
         let { name, phone, birth_day, gender, skil, certification } = body;
 
@@ -116,8 +117,8 @@ export class NguoiDungService {
         return "Cập nhật thành công !!!"
     };
 
-    async updatePass(body, id) {
-        let { pass_word_old, pass_word_new } = body;
+    async updatePass(pass_word_old: string, pass_word_new: string, id: number) {
+
         let data = await this.prisma.nguoi_dung.findFirst({
             where: {
                 id
@@ -155,7 +156,7 @@ export class NguoiDungService {
         return "Upload Avatar thành công !!!"
     };
 
-    async uploadAvtByLink(body, id) {
+    async uploadAvtByLink(body: LinkImg, id) {
         let { linkImg } = body
         await this.prisma.nguoi_dung.update({
             where: {
